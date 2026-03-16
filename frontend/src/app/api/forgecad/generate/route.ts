@@ -56,16 +56,16 @@ return group([p1, p2]);
 
 export async function POST(req: Request) {
     try {
-        const { prompt, contextOverrides } = await req.json();
-        const apiKey = process.env.GEMINI_API_KEY;
+        const { prompt, contextOverrides, apiKey } = await req.json();
+        const finalApiKey = apiKey || process.env.GEMINI_API_KEY;
 
-        if (!apiKey) {
-            return NextResponse.json({ error: 'GEMINI_API_KEY not configured' }, { status: 500 });
+        if (!finalApiKey) {
+            return NextResponse.json({ error: 'GEMINI_API_KEY not configured. Please add it to your Settings.' }, { status: 401 });
         }
 
         // We use gemini-2.5-flash as it is the most capable model available on the free tier
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
-
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${finalApiKey}`;
+        console.log('Calling Gemini API for CAD:', url.replace(finalApiKey, '***'));
         let fullPrompt = `${FORGECAD_SYSTEM_PROMPT}\n\nUSER REQUEST:\n${prompt}`;
 
         if (contextOverrides && Object.keys(contextOverrides).length > 0) {

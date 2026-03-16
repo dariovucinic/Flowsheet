@@ -12,10 +12,10 @@ export const maxDuration = 30;
 
 export async function POST(req: Request) {
     try {
-        const { messages } = await req.json();
-        const apiKey = process.env.GEMINI_API_KEY;
-        if (!apiKey) {
-            return NextResponse.json({ error: 'GEMINI_API_KEY not configured' }, { status: 500 });
+        const { messages, apiKey } = await req.json();
+        const finalApiKey = apiKey || process.env.GEMINI_API_KEY;
+        if (!finalApiKey) {
+            return NextResponse.json({ error: 'GEMINI_API_KEY not configured. Please add it to your Settings.' }, { status: 401 });
         }
 
         // Build prompt from chat history
@@ -50,9 +50,9 @@ export async function POST(req: Request) {
         }
 
         // Call Gemini API directly 
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${finalApiKey}`;
 
-        console.log('Calling Gemini API:', url.replace(apiKey, '***'));
+        console.log('Calling Gemini API:', url.replace(finalApiKey, '***'));
 
         const response = await fetch(url, {
             method: 'POST',

@@ -63,6 +63,16 @@ const SimpleChatButton: React.FC = () => {
                 )
             };
 
+            const apiKey = localStorage.getItem('flowsheet_gemini_api_key');
+            if (!apiKey) {
+                setMessages(prev => [...prev, { 
+                    role: 'assistant', 
+                    content: '⚠️ **Missing API Key**\nPlease open the Settings menu (gear icon in the top right) and enter your Google Gemini API Key to use the AI Assistant.' 
+                }]);
+                setIsLoading(false);
+                return;
+            }
+
             const response = await fetch('/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -74,7 +84,8 @@ const SimpleChatButton: React.FC = () => {
                             role: 'system',
                             content: `Context: ${JSON.stringify(context)}`
                         }
-                    ]
+                    ],
+                    apiKey: apiKey
                 })
             });
 

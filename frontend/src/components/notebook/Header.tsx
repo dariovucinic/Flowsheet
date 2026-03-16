@@ -2,7 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNotebookContext } from '@/contexts/NotebookContext';
 import Logo from '../ui/Logo';
 import ThemeSwitcher from '../ui/ThemeSwitcher';
-import { Box, Printer } from 'lucide-react';
+import { Box, Printer, Settings } from 'lucide-react';
+import SettingsDialog from './SettingsDialog';
 
 interface HeaderProps {
     onRunAll: () => void;
@@ -24,6 +25,7 @@ const Header: React.FC<HeaderProps> = ({
     const { projectName, setProjectName } = useNotebookContext();
     const [isEditingName, setIsEditingName] = useState(false);
     const [tempName, setTempName] = useState(projectName);
+    const [showSettings, setShowSettings] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
 
     // Sync temp name if project name changes externally
@@ -151,8 +153,21 @@ const Header: React.FC<HeaderProps> = ({
 
                 <div className="h-4 w-px bg-white/10 mx-1" />
 
+                <button
+                    onClick={() => setShowSettings(true)}
+                    className="p-1 rounded-md transition-all text-gray-400 hover:text-white hover:bg-white/5"
+                    title="Settings"
+                >
+                    <Settings size={16} />
+                </button>
+
+
+                <div className="h-4 w-px bg-white/10 mx-1" />
+
                 <ThemeSwitcher />
             </div>
+
+            <SettingsDialog isOpen={showSettings} onClose={() => setShowSettings(false)} />
         </header>
     );
 };

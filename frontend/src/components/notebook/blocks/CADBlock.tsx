@@ -192,18 +192,26 @@ const CADBlock: React.FC<CADBlockProps> = ({ id, content, onUpdate }) => {
         setError(null);
 
         try {
+            const apiKey = localStorage.getItem('flowsheet_gemini_api_key');
+            if (!apiKey) {
+                setError('Missing API Key. Please open the Settings menu (gear icon in the top right) to enter your Google Gemini API Key.');
+                setIsGenerating(false);
+                return;
+            }
+
             const response = await fetch('/api/forgecad/generate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     prompt: aiPrompt,
-                    contextOverrides: scope.current
+                    contextOverrides: scope.current,
+                    apiKey: apiKey
                 })
             });
 
             if (!response.ok) {
-                const errText = await response.text();
-                throw new Error(errText);
+                const data = await response.json().catch(() => ({}));
+                throw new Error(data.error || await response.text());
             }
 
             const data = await response.json();

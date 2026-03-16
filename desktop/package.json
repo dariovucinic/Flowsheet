@@ -1,0 +1,56 @@
+{
+    "name": "flowsheet-electron",
+    "version": "1.1.0",
+    "description": "Electron wrapper for FlowSheet - Integrated Engineering Design Environment",
+    "main": "main.js",
+    "scripts": {
+        "start": "electron .",
+        "dev": "electron .",
+        "build": "cross-env USE_HARD_LINKS=false electron-builder"
+    },
+    "author": "Dario Vucinic",
+    "license": "UNLICENSED",
+    "devDependencies": {
+        "concurrently": "^8.2.2",
+        "cross-env": "^7.0.3",
+        "electron": "^28.0.0",
+        "electron-builder": "^24.9.1",
+        "wait-on": "^7.2.0"
+    },
+    "build": {
+        "appId": "com.flowsheet.app",
+        "productName": "FlowSheet",
+        "files": [
+            "main.js",
+            "python_bridge.py",
+            "preload.js",
+            "package.json"
+        ],
+        "extraResources": [
+            {
+                "from": "../engineering-notebook",
+                "to": "app/engineering-notebook",
+                "filter": [
+                    "**/*",
+                    "!node_modules",
+                    "!.next",
+                    "!.git"
+                ]
+            }
+        ],
+        "directories": {
+            "output": "dist"
+        },
+        "win": {
+            "target": "dir",
+            "icon": "icon.ico"
+        },
+        "mac": {
+            "target": "dmg",
+            "icon": "icon.icns"
+        },
+        "linux": {
+            "target": "AppImage"
+        }
+    }
+}

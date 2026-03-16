@@ -1,0 +1,127 @@
+'use client';
+
+/**
+ * Copyright (c) 2025 Dario Vucinic - FlowSheet
+ * All rights reserved.
+ * 
+ * This source code is proprietary and confidential.
+ * Unauthorized copying, distribution, or use is strictly prohibited.
+ */
+
+
+import React, { useState } from 'react';
+import { ScriptBlock as ScriptBlockType } from '@/types/block';
+import { useComputation } from '@/contexts/ComputationContext';
+import CodeEditor from '../CodeEditor';
+
+interface ScriptBlockProps {
+    block: ScriptBlockType;
+    onChange: (updates: Partial<ScriptBlockType>) => void;
+}
+
+const ScriptBlock: React.FC<ScriptBlockProps> = ({ block, onChange }) => {
+    const { runScript, pyodideReady, webRReady, executionCount } = useComputation();
+    const [isExecuting, setIsExecuting] = useState(false);
+    const [lastExecutionCount, setLastExecutionCount] = useState<number | null>(null);
+
+    const language = block.language || 'python';
+    // @ts-ignore
+    const isElectron = typeof window !== 'undefined' && window.electronAPI?.isElectron;
+    const isPythonReady = isElectron || pyodideReady;
+    // Auto-focus if created empty - CodeEditor handles focus via prop but we can also signal it
+    // The Monaco editor inside CodeEditor might need a specific prop or ref to focus.
+    // However, CodeEditor.tsx likely has an autoFocus prop? Let's check or assume standard behavior.
+
+    const handleRun = async () => {
+        console.log('[ScriptBlock] Starting execution...', block.id);
+        setIsExecuting(true);
+        const startTime = performance.now();
+        const result = await runScript(block.content, language);
+        const endTime = performance.now();
+        console.log(`[ScriptBlock] Execution finished in ${(endTime - startTime).toFixed(0)}ms`);
+
+        onChange({ output: result });
+        setLastExecutionCount(executionCount + 1);
+        setIsExecuting(false);
+    };
+
+    const handleLanguageChange = (newLanguage: 'python' | 'r') => {
+        onChange({ language: newLanguage });
+    };
+
+    return (
+        <div className="flex flex-col h-full rounded-lg overflow-hidden" style={{ color: 'var(--text-color)' }}>
+            <div className="flex justify-between items-center p-3 bg-black/5 dark:bg-white/5 border-b border-black/10 dark:border-white/10">
+                <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 px-2 py-1 bg-black/10 dark:bg-white/10 rounded-md">
+                        <span className="text-xs font-bold opacity-70 tracking-wider">SCRIPT</span>
+                        {lastExecutionCount !== null && (
+                            <span className="text-xs font-mono text-indigo-500 ml-1">[{lastExecutionCount}]</span>
+                        )}
+                    </div>
+                    <select
+                        value={language}
+                        onChange={(e) => handleLanguageChange(e.target.value as 'python' | 'r')}
+                        className="text-xs font-medium text-slate-700 dark:text-slate-300 bg-transparent outline-none cursor-pointer hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                    >
+                        <option value="python" disabled={!isPythonReady}>
+                            Python {!isPythonReady && '(loading...)'}
+                        </option>
+                        <option value="r" disabled={!webRReady}>
+                            R {!webRReady && '(loading...)'}
+                        </option>
+                    </select>
+                </div>
+                <div className="flex items-center gap-2">
+                    <button
+                        className="p-1 px-2 text-xs font-medium text-slate-500 hover:bg-slate-100 rounded transition-colors"
+                        title="Format Code (Not implemented yet)"
+                        onClick={() => alert("Auto-formatting is coming soon!")}
+                    >
+                        Format
+                    </button>
+                    <button
+                        onClick={handleRun}
+                        className={`
+                        p-1.5 rounded-md transition-all duration-200
+                        ${isExecuting
+                                ? 'text-slate-300 cursor-wait'
+                                : 'text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700 active:scale-95'
+                            }
+                        disabled:opacity-50 disabled:cursor-not-allowed
+                    `}
+                        disabled={isExecuting || (language === 'python' && !isPythonReady) || (language === 'r' && !webRReady)}
+                        title={isExecuting ? 'Running...' : 'Run Script (Shift+Enter)'}
+                    >
+                        {isExecuting ? (
+                            <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                                <path fillRule="evenodd" d="M4.5 5.653c0-1.426 1.529-2.33 2.779-1.643l11.54 6.348c1.295.712 1.295 2.573 0 3.285L7.28 19.991c-1.25.687-2.779-.217-2.779-1.643V5.653z" clipRule="evenodd" />
+                            </svg>
+                        )}
+                    </button>
+                </div>
+            </div>
+            <div className="flex-1 relative overflow-hidden">
+                <CodeEditor
+                    value={block.content}
+                    onChange={(content) => onChange({ content })}
+                    language={language === 'r' ? 'javascript' : language}
+                    onRun={handleRun}
+                    autoFocus={!block.content}
+                />
+            </div>
+            {block.output && (
+                <div className="max-h-[40%] overflow-auto p-3 bg-black/5 dark:bg-white/5 border-t border-black/10 dark:border-white/10">
+                    <div className="text-[10px] font-bold opacity-50 mb-1 uppercase tracking-wider">Output</div>
+                    <div className="font-mono text-xs text-slate-700 dark:text-slate-300 whitespace-pre-wrap break-words">
+                        {block.output}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+export default ScriptBlock;

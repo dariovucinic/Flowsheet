@@ -28,18 +28,18 @@
         ],
         "extraResources": [
             {
-                "from": "../engineering-notebook/.next/standalone",
-                "to": "app/engineering-notebook",
+                "from": "../frontend/.next/standalone",
+                "to": "app/frontend",
                 "filter": ["**/*"]
             },
             {
-                "from": "../engineering-notebook/public",
-                "to": "app/engineering-notebook/public",
+                "from": "../frontend/public",
+                "to": "app/frontend/public",
                 "filter": ["**/*"]
             },
             {
-                "from": "../engineering-notebook/.next/static",
-                "to": "app/engineering-notebook/.next/static",
+                "from": "../frontend/.next/static",
+                "to": "app/frontend/.next/static",
                 "filter": ["**/*"]
             }
         ],

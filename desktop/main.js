@@ -17,8 +17,8 @@ const PORT = 3000;
 const NEXT_URL = `http://localhost:${PORT}`;
 
 const NEXT_APP_PATH = isDev
-    ? path.join(__dirname, '..', 'engineering-notebook')
-    : path.join(process.resourcesPath, 'app', 'engineering-notebook');
+    ? path.join(__dirname, '..', 'frontend')
+    : path.join(process.resourcesPath, 'app', 'frontend');
 
 // ─── Loading Screen HTML ──────────────────────────────────────────────────────
 

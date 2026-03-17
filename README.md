@@ -28,26 +28,30 @@ To run FlowSheet on your local machine:
    npm install
    ```
 
-2. **Start the Frontend Development Server**
-   ```bash
-   cd frontend
-   npm run dev
-   ```
-
-3. **Start the Electron App**
-   Wait for the Next.js server to start on `localhost:3000`, then:
+2. **Start the App**
+   FlowSheet's Electron wrapper will automatically start the Next.js development server for you. You only need to run:
    ```bash
    cd desktop
    npm start
    ```
+   *(Wait a few seconds for the Next.js compiler to finish, and the interface will load automatically.)*
 
 ## Creating a Portable Executable (Windows)
-To build a standalone `.exe` without an installer:
-```bash
-cd desktop
-npm run build
-```
-The result will be available in `desktop/dist/win-unpacked`.
+FlowSheet uses a customized `standalone` Next.js server to ensure lightning-fast startup times without needing `npx` or large `node_modules`.
+
+1. **Build the optimized Frontend first:**
+   ```bash
+   cd frontend
+   npm run build
+   ```
+
+2. **Package the Desktop app:**
+   ```bash
+   cd desktop
+   npm run build
+   ```
+   
+The standalone `.exe` will be available in `desktop/dist/win-unpacked`.
 
 ## License
 MIT License. See `LICENSE` for details.

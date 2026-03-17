@@ -103,8 +103,16 @@ async function startNextServer() {
     }
 
     const env = { ...process.env, NODE_ENV: isDev ? 'development' : 'production', PORT: String(PORT) };
-    const cmd = process.platform === 'win32' ? 'npx.cmd' : 'npx';
-    const args = isDev ? ['next', 'dev', '--port', String(PORT)] : ['next', 'start', '--port', String(PORT)];
+    let cmd, args;
+
+    if (isDev) {
+        cmd = process.platform === 'win32' ? 'npx.cmd' : 'npx';
+        args = ['next', 'dev', '--port', String(PORT)];
+    } else {
+        cmd = process.execPath;
+        args = ['server.js'];
+        env.ELECTRON_RUN_AS_NODE = '1';
+    }
 
     console.log(`[Next] ${cmd} ${args.join(' ')} in ${NEXT_APP_PATH}`);
 
@@ -112,7 +120,7 @@ async function startNextServer() {
         cwd: NEXT_APP_PATH,
         env,
         stdio: ['ignore', 'pipe', 'pipe'],
-        shell: process.platform === 'win32',
+        shell: process.platform === 'win32' && isDev,
     });
 
     nextProcess.stdout.on('data', d => console.log('[Next]', d.toString().trim()));

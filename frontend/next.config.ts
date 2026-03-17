@@ -11,6 +11,7 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true
   },
+  output: 'standalone',
   transpilePackages: ['forgecad'],
   serverExternalPackages: ['manifold-3d'],
 };

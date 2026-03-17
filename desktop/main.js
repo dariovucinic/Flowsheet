@@ -107,7 +107,7 @@ async function startNextServer() {
 
     if (isDev) {
         cmd = process.platform === 'win32' ? 'npx.cmd' : 'npx';
-        args = ['next', 'dev', '--port', String(PORT)];
+        args = ['next', 'dev', '--webpack', '--port', String(PORT)];
     } else {
         cmd = process.execPath;
         args = ['server.js'];
@@ -259,3 +259,4 @@ ipcMain.handle('run-python', async (_, code, inputs) => {
         });
     } catch (e) { return { success: false, error: e.message }; }
 });
+

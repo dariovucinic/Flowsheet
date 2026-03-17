@@ -19,6 +19,7 @@ const nextConfig: NextConfig = {
             path: false,
             crypto: false,
             os: false,
+            module: false,
         };
     }
     return config;

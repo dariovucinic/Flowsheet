@@ -9,6 +9,16 @@
 - **Parametric CAD:** Generate and view real-time 3D geometry using the `CAD` block with ForgeCAD.
 - **Document Rendering:** Incorporate PDF standards and Image references seamlessly into your workspace.
 
+## AI Assistant & Generative CAD
+FlowSheet includes a built-in AI assistant capable of writing Python logic and generating 3D CAD geometry on the fly. Because FlowSheet operates entirely locally, it does not route data through any third-party telemetry servers.
+
+To use the AI features, you must provide your own **Google Gemini API Key**:
+1. Get a free API key from [Google AI Studio](https://aistudio.google.com/).
+2. Click the `⚙️ Settings` icon in the top right of the FlowSheet interface.
+3. Paste your key (it will be stored securely in your local storage).
+
+*Note: FlowSheet is hardcoded to request the `gemini-2.5-flash` model. Your API key must have access to Google's Gemini 2.5 architecture.*
+
 ## Repository Structure
 This repository is organized as a monorepo containing:
 - `/frontend` - The Next.js React application (Browser UI)

@@ -43,6 +43,8 @@ const CADBlock: React.FC<CADBlockProps> = ({ id, content, onUpdate }) => {
     const [paramOverrides, setParamOverrides] = useState<Record<string, number>>({});
     const [aiPrompt, setAiPrompt] = useState('');
     const [isGenerating, setIsGenerating] = useState(false);
+    const [isEditorOpen, setIsEditorOpen] = useState(true);
+    const [isEditorWide, setIsEditorWide] = useState(false);
 
     const controlsRef = useRef<any>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -267,8 +269,11 @@ const CADBlock: React.FC<CADBlockProps> = ({ id, content, onUpdate }) => {
     return (
         <div className="w-full h-[600px] bg-slate-950 rounded-xl overflow-hidden relative flex border border-white/10 shadow-2xl">
             {/* Left side: Code Editor */}
-            <div className="w-1/3 border-r border-white/10 flex flex-col z-20">
-                <div className="bg-slate-900 border-b border-white/5 p-2 text-xs font-mono text-slate-400 font-semibold tracking-wider flex justify-between items-center">
+            <div 
+                className={`${isEditorOpen ? (isEditorWide ? 'w-1/2' : 'w-1/3') : 'w-0'} flex-shrink-0 border-r border-white/10 flex flex-col z-20 overflow-hidden transition-all duration-300`}
+                onWheel={(e) => e.stopPropagation()}
+            >
+                <div className="bg-slate-900 border-b border-white/5 p-2 text-xs font-mono text-slate-400 font-semibold tracking-wider flex justify-between items-center min-w-max">
                     <span className="flex items-center gap-1 group">
                         <input
                             type="text"
@@ -283,7 +288,15 @@ const CADBlock: React.FC<CADBlockProps> = ({ id, content, onUpdate }) => {
                         .FORGE.JS
                         {isGenerating && <span className="text-[10px] text-indigo-400 ml-2 animate-pulse">✨ Generating...</span>}
                     </span>
-                    {loading && <div className="w-3 h-3 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin" />}
+                    <div className="flex items-center gap-3 pr-2">
+                        {loading && <div className="w-3 h-3 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin" />}
+                        <button onClick={() => setIsEditorWide(!isEditorWide)} className="opacity-50 hover:opacity-100 transition-opacity" title={isEditorWide ? "Shrink panel" : "Expand panel"}>
+                            {isEditorWide ? '→←' : '←→'}
+                        </button>
+                        <button onClick={() => setIsEditorOpen(false)} className="opacity-50 hover:opacity-100 transition-opacity" title="Hide code panel">
+                            ✕
+                        </button>
+                    </div>
                 </div>
 
                 {/* AI Prompt Input */}
@@ -315,7 +328,16 @@ const CADBlock: React.FC<CADBlockProps> = ({ id, content, onUpdate }) => {
             </div>
 
             {/* Right side: 3D View */}
-            <div className="flex-1 relative flex flex-col">
+            <div className="flex-1 relative flex flex-col min-w-0">
+                {!isEditorOpen && (
+                    <button 
+                        onClick={() => setIsEditorOpen(true)}
+                        className="absolute top-4 left-4 z-30 bg-slate-900/80 hover:bg-slate-800 text-white/80 px-3 py-1.5 rounded-md backdrop-blur-sm border border-white/10 text-xs font-mono flex items-center gap-2 transition-colors shadow-lg"
+                    >
+                        <span className="text-cyan-500 font-bold">{"</>"}</span> Show Code
+                    </button>
+                )}
+                
                 <CADToolbar
                     mode={mode}
                     setMode={setMode}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Canvas } from '@react-three/fiber';
+import { Canvas, useThree } from '@react-three/fiber';
 import { OrbitControls, Bounds, useBounds } from '@react-three/drei';
 import * as THREE from 'three';
 import { v4 as uuidv4 } from 'uuid';
@@ -15,10 +15,14 @@ import CodeEditor from '../CodeEditor';
 // Inner component to trigger auto-fit when new objects appear
 function BoundsRefresher({ objectCount }: { objectCount: number }) {
     const bounds = useBounds();
+    const { invalidate } = useThree();
     useEffect(() => {
         if (objectCount > 0) {
             // Small delay so Three.js geometry is fully mounted before fitting
-            const t = setTimeout(() => bounds.refresh().fit(), 100);
+            const t = setTimeout(() => {
+                bounds.refresh().fit();
+                invalidate();
+            }, 100);
             return () => clearTimeout(t);
         }
     }, [objectCount]);
@@ -385,9 +389,9 @@ const CADBlock: React.FC<CADBlockProps> = ({ id, content, onUpdate }) => {
                         }
                     }}
                 >
-                    <Canvas shadows dpr={[1, 2]} camera={{ position: [4, 4, 4], fov: 50 }}>
+                    <Canvas shadows dpr={[1, 2]} camera={{ position: [4, 4, 4], fov: 50 }} frameloop="demand">
                         <color attach="background" args={['#0f172a']} />
-                        <Bounds fit clip observe margin={1.2}>
+                        <Bounds fit clip margin={1.2}>
                             <BoundsRefresher objectCount={objects.length} />
                             <MeasurementScene
                                 objects={objects}
@@ -413,6 +417,7 @@ const CADBlock: React.FC<CADBlockProps> = ({ id, content, onUpdate }) => {
                             enablePan={true}
                             panSpeed={1}
                             rotateSpeed={0.5}
+                            enableDamping={false}
                         />
                         <gridHelper args={[20, 20, 0x444444, 0x222222]} />
                     </Canvas>

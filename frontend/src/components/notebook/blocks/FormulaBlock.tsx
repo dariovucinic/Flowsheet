@@ -42,25 +42,35 @@ const FormulaBlock: React.FC<FormulaBlockProps> = ({ block, onChange }) => {
         }
 
         try {
-            // Strip comment lines (starting with //) before evaluation
-            const evaluatableContent = block.content
-                .split('\n')
-                .filter(line => !line.trim().startsWith('//'))
-                .join('\n')
-                .trim();
+            // Strip comment and empty lines for evaluation
+            const lines = block.content.split('\n');
+            const evaluatableLines = lines
+                .filter(line => line.trim() !== '' && !line.trim().startsWith('//'))
+                .map(line => {
+                    // Convert European decimal commas to dots:
+                    // Match digit,digit patterns (e.g., 0,67 -> 0.67)
+                    return line.replace(/(\d),(\d)/g, '$1.$2');
+                });
 
-            if (!evaluatableContent) {
+            if (evaluatableLines.length === 0) {
                 setResults([]);
                 return;
             }
 
-            const res = evaluateFormula(evaluatableContent);
-
-            let newResults: any[] = [];
-            if (res && typeof res === 'object' && 'entries' in res && Array.isArray(res.entries)) {
-                newResults = res.entries;
-            } else if (res !== undefined) {
-                newResults = [res];
+            // Evaluate each line independently so one error doesn't kill everything
+            const newResults: any[] = [];
+            for (const line of evaluatableLines) {
+                try {
+                    const res = evaluateFormula(line);
+                    // math.evaluate returns a ResultSet for multi-line, but single line returns value
+                    if (res && typeof res === 'object' && 'entries' in res && Array.isArray(res.entries)) {
+                        newResults.push(res.entries[0]);
+                    } else {
+                        newResults.push(res);
+                    }
+                } catch {
+                    newResults.push(undefined);
+                }
             }
 
             setResults(newResults);

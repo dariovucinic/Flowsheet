@@ -95,7 +95,7 @@ const TableBlock: React.FC<TableBlockProps> = ({ block, onChange }) => {
                     }
                 }
                 // Auto-convert numeric strings to actual numbers
-                const trimmed = cell.trim();
+                const trimmed = typeof cell === 'string' ? cell.trim() : '';
                 if (trimmed !== '' && !isNaN(Number(trimmed))) {
                     return Number(trimmed);
                 }
@@ -359,7 +359,7 @@ const TableBlock: React.FC<TableBlockProps> = ({ block, onChange }) => {
                 </div>
             )}
 
-            <div className="p-0 overflow-auto flex-1">
+            <div className="p-0 overflow-auto flex-1" onWheel={(e) => e.stopPropagation()}>
                 <table className="w-full border-collapse">
                     <thead>
                         <tr>

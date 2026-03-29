@@ -28,6 +28,7 @@ const TableBlock: React.FC<TableBlockProps> = ({ block, onChange }) => {
     const [, setUpdateTrigger] = useState(0);
     const [showFormatting, setShowFormatting] = useState(false);
     const cellRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
+    const selfUpdateRef = useRef(false);
 
     // Import Dialog State
     const [importDialog, setImportDialog] = useState<{ isOpen: boolean; sheets: string[] }>({ isOpen: false, sheets: [] });
@@ -53,8 +54,12 @@ const TableBlock: React.FC<TableBlockProps> = ({ block, onChange }) => {
     // Initialize with some data if empty
     const data = block.content.length > 0 ? block.content : [['', '', ''], ['', '', ''], ['', '', '']];
 
-    // Sync from scope to table when scope changes
+    // Sync from scope to table when scope changes (only if change came from outside)
     useEffect(() => {
+        if (selfUpdateRef.current) {
+            selfUpdateRef.current = false;
+            return;
+        }
         if (block.variableName && block.variableName.trim()) {
             const scopeValue = scope.current[block.variableName.trim()];
             // Check if scope value is a 2D array and different from current content
@@ -91,7 +96,8 @@ const TableBlock: React.FC<TableBlockProps> = ({ block, onChange }) => {
                 }
                 return cell;
             }));
-            // Use updateVariable to trigger reactivity
+            // Mark as self-update so scope->table sync doesn't fire back
+            selfUpdateRef.current = true;
             updateVariable(debouncedVarName.trim(), evaluatedData);
         }
     }, [debouncedVarName, data, evaluateFormula, updateVariable]);

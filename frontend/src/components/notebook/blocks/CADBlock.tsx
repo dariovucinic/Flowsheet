@@ -210,6 +210,7 @@ const CADBlock: React.FC<CADBlockProps> = ({ id, content, onUpdate }) => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     prompt: aiPrompt,
+                    existingCode: scriptCode,
                     contextOverrides: scope.current,
                     apiKey: apiKey
                 })

@@ -56,7 +56,7 @@ return group([p1, p2]);
 
 export async function POST(req: Request) {
     try {
-        const { prompt, contextOverrides, apiKey } = await req.json();
+        const { prompt, existingCode, contextOverrides, apiKey } = await req.json();
         const finalApiKey = apiKey || process.env.GEMINI_API_KEY;
 
         if (!finalApiKey) {
@@ -67,6 +67,11 @@ export async function POST(req: Request) {
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${finalApiKey}`;
         console.log('Calling Gemini API for CAD:', url.replace(finalApiKey, '***'));
         let fullPrompt = `${FORGECAD_SYSTEM_PROMPT}\n\nUSER REQUEST:\n${prompt}`;
+
+        // If there is existing code, instruct the AI to modify it
+        if (existingCode && existingCode.trim() && !existingCode.trim().startsWith('// Write your ForgeCAD')) {
+            fullPrompt += `\n\nCURRENT SCRIPT (modify this code based on the user's request — do NOT start from scratch, do NOT call it as a function):\n\`\`\`\n${existingCode}\n\`\`\``;
+        }
 
         if (contextOverrides && Object.keys(contextOverrides).length > 0) {
             fullPrompt += `\n\nTake advantage of these global constants available in the user's environment scope:\n`;

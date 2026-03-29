@@ -356,9 +356,20 @@ const TableBlock: React.FC<TableBlockProps> = ({ block, onChange }) => {
 
             <div className="p-0 overflow-auto flex-1">
                 <table className="w-full border-collapse">
+                    <thead>
+                        <tr>
+                            <th className="w-8 min-w-[32px] h-6 bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-[10px] font-medium opacity-40 select-none"></th>
+                            {(data[0] || []).map((_, colIndex) => (
+                                <th key={colIndex} className="min-w-[60px] h-6 bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-[10px] font-mono font-medium opacity-40 select-none text-center">
+                                    {colIndex}
+                                </th>
+                            ))}
+                        </tr>
+                    </thead>
                     <tbody>
                         {data.map((row, rowIndex) => (
                             <tr key={rowIndex}>
+                                <td className="w-8 min-w-[32px] h-8 bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-[10px] font-mono font-medium opacity-40 text-center select-none">{rowIndex}</td>
                                 {row.map((cell, colIndex) => {
                                     const isFormula = typeof cell === 'string' && (cell.startsWith('=') || cell.includes('{'));
                                     const displayValue = isFormula ? getCellDisplay(cell) : cell;

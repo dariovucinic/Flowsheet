@@ -29,6 +29,9 @@ const TableBlock: React.FC<TableBlockProps> = ({ block, onChange }) => {
     const [showFormatting, setShowFormatting] = useState(false);
     const cellRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
     const selfUpdateRef = useRef(false);
+    
+    // Formula Mode State
+    const [activeFormulaCell, setActiveFormulaCell] = useState<{r: number, c: number} | null>(null);
 
     // Import Dialog State
     const [importDialog, setImportDialog] = useState<{ isOpen: boolean; sheets: string[] }>({ isOpen: false, sheets: [] });
@@ -129,11 +132,39 @@ const TableBlock: React.FC<TableBlockProps> = ({ block, onChange }) => {
 
         newData[rowIndex][colIndex] = parsedValue;
         onChange({ content: newData });
+
+        // Auto-activate formula mode if they type =
+        if (value.startsWith('=')) {
+            setActiveFormulaCell({ r: rowIndex, c: colIndex });
+        } else if (activeFormulaCell?.r === rowIndex && activeFormulaCell?.c === colIndex) {
+            setActiveFormulaCell(null);
+        }
+    };
+
+    const handleFocus = (rowIndex: number, colIndex: number, value: any) => {
+        if (typeof value === 'string' && value.startsWith('=')) {
+            setActiveFormulaCell({ r: rowIndex, c: colIndex });
+        } else {
+            setActiveFormulaCell(null);
+        }
+    };
+
+    const handleBlur = (rowIndex: number, colIndex: number) => {
+        // Small delay to allow mousedown on another cell to prevent default and keep focus
+        setTimeout(() => {
+            if (activeFormulaCell?.r === rowIndex && activeFormulaCell?.c === colIndex) {
+                // If focus actually moved outside our inputs, clear formula mode
+                if (document.activeElement?.tagName !== 'INPUT') {
+                    setActiveFormulaCell(null);
+                }
+            }
+        }, 150);
     };
 
     const handleKeyDown = (e: React.KeyboardEvent, rowIndex: number, colIndex: number) => {
         if (e.key === 'Enter') {
             e.preventDefault();
+            setActiveFormulaCell(null);
             const nextRow = rowIndex + 1;
             if (nextRow < data.length) {
                 cellRefs.current[`${nextRow}-${colIndex}`]?.focus();
@@ -143,6 +174,8 @@ const TableBlock: React.FC<TableBlockProps> = ({ block, onChange }) => {
                 // Focus will be handled after render, tricky without effect, but let's try simple focus move first
                 setTimeout(() => cellRefs.current[`${nextRow}-${colIndex}`]?.focus(), 0);
             }
+        } else if (e.key === 'Escape') {
+            setActiveFormulaCell(null);
         } else if (e.key === 'ArrowUp') {
             e.preventDefault();
             const prevRow = rowIndex - 1;
@@ -380,9 +413,42 @@ const TableBlock: React.FC<TableBlockProps> = ({ block, onChange }) => {
                                 {row.map((cell, colIndex) => {
                                     const isFormula = typeof cell === 'string' && (cell.startsWith('=') || cell.includes('{'));
                                     const displayValue = isFormula ? getCellDisplay(cell) : cell;
+                                    
+                                    const isActiveFormulaCell = activeFormulaCell?.r === rowIndex && activeFormulaCell?.c === colIndex;
+                                    const isFormulaMode = activeFormulaCell !== null;
 
                                     return (
-                                        <td key={`${rowIndex}-${colIndex}`} className="border border-black/10 dark:border-white/10 p-0 min-w-[60px] h-8 relative group transition-colors hover:bg-black/5 dark:hover:bg-white/5">
+                                        <td 
+                                            key={`${rowIndex}-${colIndex}`} 
+                                            className={`border border-black/10 dark:border-white/10 p-0 min-w-[60px] h-8 relative group transition-colors 
+                                                ${isActiveFormulaCell ? 'ring-1 ring-indigo-500 z-10' : 'hover:bg-black/5 dark:hover:bg-white/5'}
+                                                ${isFormulaMode && !isActiveFormulaCell ? 'cursor-alias bg-indigo-50/30 dark:bg-indigo-900/10' : ''}
+                                            `}
+                                            onMouseDown={(e) => {
+                                                if (isFormulaMode && !isActiveFormulaCell && activeFormulaCell) {
+                                                    e.preventDefault(); // Prevent focus change
+                                                    
+                                                    const varName = block.variableName || 'table';
+                                                    const refString = `${varName}[${rowIndex}][${colIndex}]`;
+                                                    
+                                                    const activeVal = String(data[activeFormulaCell.r][activeFormulaCell.c]);
+                                                    const inputEl = cellRefs.current[`${activeFormulaCell.r}-${activeFormulaCell.c}`];
+                                                    
+                                                    if (inputEl) {
+                                                        const start = inputEl.selectionStart ?? activeVal.length;
+                                                        const end = inputEl.selectionEnd ?? activeVal.length;
+                                                        const newVal = activeVal.slice(0, start) + refString + activeVal.slice(end);
+                                                        
+                                                        handleCellChange(activeFormulaCell.r, activeFormulaCell.c, newVal);
+                                                        
+                                                        setTimeout(() => {
+                                                            inputEl.focus();
+                                                            inputEl.setSelectionRange(start + refString.length, start + refString.length);
+                                                        }, 0);
+                                                    }
+                                                }
+                                            }}
+                                        >
                                             <input
                                                 ref={el => {
                                                     cellRefs.current[`${rowIndex}-${colIndex}`] = el;
@@ -390,6 +456,7 @@ const TableBlock: React.FC<TableBlockProps> = ({ block, onChange }) => {
                                                 className={`
                                                     w-full h-full px-2 py-1 outline-none border-none bg-transparent font-mono
                                                     ${isFormula ? 'text-indigo-600 dark:text-indigo-400 font-medium' : ''}
+                                                    ${isFormulaMode && !isActiveFormulaCell ? 'pointer-events-none' : ''}
                                                     placeholder:opacity-30
                                                 `}
                                                 style={{
@@ -401,6 +468,8 @@ const TableBlock: React.FC<TableBlockProps> = ({ block, onChange }) => {
                                                 value={cell === null || cell === undefined ? '' : String(cell)}
                                                 onChange={(e) => handleCellChange(rowIndex, colIndex, e.target.value)}
                                                 onKeyDown={(e) => handleKeyDown(e, rowIndex, colIndex)}
+                                                onFocus={() => handleFocus(rowIndex, colIndex, cell)}
+                                                onBlur={() => handleBlur(rowIndex, colIndex)}
                                                 placeholder={rowIndex === 0 && colIndex === 0 ? '=' : ''}
                                             />
                                             {isFormula && (

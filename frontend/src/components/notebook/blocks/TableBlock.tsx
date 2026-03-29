@@ -94,6 +94,11 @@ const TableBlock: React.FC<TableBlockProps> = ({ block, onChange }) => {
                         });
                     }
                 }
+                // Auto-convert numeric strings to actual numbers
+                const trimmed = cell.trim();
+                if (trimmed !== '' && !isNaN(Number(trimmed))) {
+                    return Number(trimmed);
+                }
                 return cell;
             }));
             // Mark as self-update so scope->table sync doesn't fire back

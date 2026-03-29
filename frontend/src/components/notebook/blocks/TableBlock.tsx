@@ -45,7 +45,7 @@ const TableBlock: React.FC<TableBlockProps> = ({ block, onChange }) => {
     }, [block.variableName]);
 
     const style = block.style || {
-        color: '#000000',
+        color: 'var(--text-color)',
         fontSize: '14px',
         fontFamily: 'Inter, sans-serif',
         textAlign: 'center'
@@ -389,8 +389,9 @@ const TableBlock: React.FC<TableBlockProps> = ({ block, onChange }) => {
                                                 <>
                                                     {/* Display result overlay */}
                                                     <div
-                                                        className="absolute inset-0 bg-white/95 dark:bg-slate-900/95 pointer-events-none flex items-center px-2 text-sm text-slate-800 dark:text-slate-200 font-medium group-hover:opacity-0 transition-opacity"
+                                                        className="absolute inset-0 pointer-events-none flex items-center px-2 text-sm font-medium group-hover:opacity-0 transition-opacity"
                                                         style={{
+                                                            backgroundColor: 'var(--surface-color, rgba(15,23,42,0.95))',
                                                             color: style.color,
                                                             fontSize: style.fontSize,
                                                             fontFamily: style.fontFamily,

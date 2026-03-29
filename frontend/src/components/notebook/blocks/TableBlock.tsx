@@ -156,7 +156,8 @@ const TableBlock: React.FC<TableBlockProps> = ({ block, onChange }) => {
                 cellRefs.current[`${nextRow}-${colIndex}`]?.focus();
             }
         } else if (e.key === 'ArrowLeft') {
-            if (e.ctrlKey || e.metaKey) {
+            const input = e.target as HTMLInputElement;
+            if (input.selectionStart === 0) {
                 e.preventDefault();
                 const prevCol = colIndex - 1;
                 if (prevCol >= 0) {
@@ -164,7 +165,8 @@ const TableBlock: React.FC<TableBlockProps> = ({ block, onChange }) => {
                 }
             }
         } else if (e.key === 'ArrowRight') {
-            if (e.ctrlKey || e.metaKey) {
+            const input = e.target as HTMLInputElement;
+            if (input.selectionStart === input.value.length) {
                 e.preventDefault();
                 const nextCol = colIndex + 1;
                 if (nextCol < data[0].length) {
